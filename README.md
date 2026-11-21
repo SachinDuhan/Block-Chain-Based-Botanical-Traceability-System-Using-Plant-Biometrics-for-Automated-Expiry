@@ -43,14 +43,13 @@ The system is implemented in a Google Colab notebook (`plant_as_id_vein_extracti
 
 | Stage | What it does | Method |
 |---|---|---|
-| **1. Data loading** | Loads BEL (Blonder Bornean Leaf venation) image/mask pairs as optional supervised examples | `load_bel_sample()` |
-| **2. Vein extraction** | Separates leaf from background and extracts a thin vein skeleton from a normal photo | Otsu on saturation for leaf mask, CLAHE, Frangi ridge filter, skeletonization |
-| **3. Minutiae extraction** | Finds vein **endpoints** and **branch points** on the skeleton, with spur pruning and leaf-border filtering | Neighbour-count analysis (fingerprint-style minutiae) |
-| **3.5. Minutiae thinning** | Keeps only the strongest, well-separated minutiae, scored by local vein width, with endpoints and branch points thinned separately | Distance transform plus non-max suppression |
+| **1. Vein extraction** | Separates leaf from background and extracts a thin vein skeleton from a normal photo | Otsu on saturation for leaf mask, CLAHE, Frangi ridge filter, skeletonization |
+| **2. Minutiae extraction** | Finds vein **endpoints** and **branch points** on the skeleton, with spur pruning and leaf-border filtering | Neighbour-count analysis (fingerprint-style minutiae) |
+| **3. Minutiae thinning** | Keeps only the strongest, well-separated minutiae, scored by local vein width, with endpoints and branch points thinned separately | Distance transform plus non-max suppression |
 | **4. Minutiae matching** | Compares two minutiae sets using rotation- and scale-invariant local descriptors | Ratio test, mutual matching, RANSAC affine fit |
-| **4b. Vein-region SIFT** | Matches SIFT keypoints restricted to a dilated vein region | SIFT, ratio test, RANSAC |
-| **4c. Learned matching** | Matches pretrained learned features inside the vein region, more tolerant of lighting changes | SuperPoint + LightGlue via ONNX Runtime (no training, no GPU) |
-| **5. Degradation check** | Compares a current photo against the baseline to flag token expiry | HSV colour-histogram drift plus leaf-area shrinkage |
+| **5. Vein-region SIFT matching** | Matches SIFT keypoints restricted to a dilated vein region | SIFT, ratio test, RANSAC |
+| **6. Learned matching** | Matches pretrained learned features inside the vein region, more tolerant of lighting changes | SuperPoint + LightGlue via ONNX Runtime (no training, no GPU) |
+| **7. Degradation check** | Compares a current photo against the baseline to flag token expiry | HSV colour-histogram drift plus leaf-area shrinkage |
 
 ---
 
@@ -74,12 +73,12 @@ pip install scikit-image opencv-python-headless onnxruntime
 ```
 
 1. Open the notebook in Colab and run the setup cells.
-2. Upload leaf photos (`.jpg` / `.jpeg` / `.png`) on a plain background. Optionally upload BEL `_img.png` / `_mask.png` pairs.
-3. Run stage 2 to generate, per photo, the leaf mask, vein mask, skeleton and overlay (saved to `/content/out`).
-4. Run stages 3 and 3.5 to extract and thin the minutiae.
-5. Run stage 4, 4b or 4c to compare two photos. Each returns candidates, inliers, an inlier fraction and the estimated transform.
-6. For stage 4c, run the setup cell once per session to download the pretrained SuperPoint and LightGlue ONNX models.
-7. Run stage 5 with a baseline and a current photo to check degradation.
+2. Upload leaf photos (`.jpg` / `.jpeg` / `.png`) on a plain background.
+3. Run stage 1 to generate, per photo, the leaf mask, vein mask, skeleton and overlay (saved to `/content/out`).
+4. Run stages 2 and 3 to extract and thin the minutiae.
+5. Run stage 4, 5 or 6 to compare two photos. Each returns candidates, inliers, an inlier fraction and the estimated transform.
+6. For stage 6, run the setup cell once per session to download the pretrained SuperPoint and LightGlue ONNX models.
+7. Run stage 7 with a baseline and a current photo to check degradation.
 
 ### Tunable parameters
 
@@ -109,11 +108,11 @@ pip install scikit-image opencv-python-headless onnxruntime
 
 ## 9. Acknowledgements
 
-We thank our project guide, Prof. Deepika G S, the Department of CSE (AI & ML), and Sai Vidya Institute of Technology for their support and guidance. We also acknowledge the BEL venation dataset, and the authors of SuperPoint, LightGlue and the LightGlue-ONNX project.
+We thank our project guide, Prof. Deepika G S, the Department of CSE (AI & ML), and Sai Vidya Institute of Technology for their support and guidance. We also acknowledge the authors of SuperPoint, LightGlue and the LightGlue-ONNX project.
 
 ## 10. Repository Contents
 
 ```
-plant_as_id_vein_extraction_stage4c.ipynb   # full pipeline, stages 1-5
+plant_as_id_vein_extraction_stage4c.ipynb   # full pipeline, stages 1-7
 README.md                                   # this file
 ```
